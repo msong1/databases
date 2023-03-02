@@ -16,12 +16,26 @@ describe('Persistent Node Chat Server', () => {
   beforeAll((done) => {
     dbConnection.connect();
 
-       const tablename = ''; // TODO: fill this out
+    const tables = ['rooms',
+      'users',
+      'roomUserJunction',
+      'messages']; // TODO: fill this out
 
     /* Empty the db table before all tests so that multiple tests
      * (or repeated runs of the tests)  will not fail when they should be passing
      * or vice versa */
-    dbConnection.query(`truncate ${tablename}`, done);
+    //var dbTruncate = function (callback) {
+    dbConnection.query(`set foreign_key_checks = 0`, (error, results) => {
+      dbConnection.query(`truncate ${tables[3]}`, (error, results) => {
+        dbConnection.query(`truncate ${tables[2]}`, (error, results) => {
+          dbConnection.query(`truncate ${tables[1]}`, (error, results) => {
+            dbConnection.query(`truncate ${tables[0]}`, (error, results) =>{
+              dbConnection.query(`set foreign_key_checks = 1`,done);
+            });
+          });
+        });
+      });
+    });
   }, 6500);
 
   afterAll(() => {
@@ -43,7 +57,10 @@ describe('Persistent Node Chat Server', () => {
 
         /* TODO: You might have to change this test to get all the data from
          * your message table, since this is schema-dependent. */
-        const queryString = 'SELECT * FROM messages';
+        // const queryString = 'SELECT * FROM messages'; //====== JOINED TABLE WITH ALL THE INFO
+        const queryString = `SELECT m.id m.text r.roomname u.username FROM messages m
+                              INNER JOIN users u ON m.userId = u.id
+                              INNER JOIN rooms r ON m.roomID = r.id`;
         const queryArgs = [];
 
         dbConnection.query(queryString, queryArgs, (err, results) => {
@@ -65,8 +82,10 @@ describe('Persistent Node Chat Server', () => {
 
   it('Should output all messages from the DB', (done) => {
     // Let's insert a message into the db
-       const queryString = '';
-       const queryArgs = [];
+    const queryString = `SELECT m.id, m.text, r.roomname, u.username FROM messages m
+    INNER JOIN users u ON m.userId = u.id
+    INNER JOIN rooms r ON m.roomID = r.id`; // TODO
+    const queryArgs = []; // WHAT IS THIS
     /* TODO: The exact query string and query args to use here
      * depend on the schema you design, so I'll leave them up to you. */
     dbConnection.query(queryString, queryArgs, (err) => {
@@ -74,7 +93,7 @@ describe('Persistent Node Chat Server', () => {
         throw err;
       }
 
-      // Now query the Node chat server and see if it returns the message we just inserted:
+      // Now query the Node crhat serve and see if it returns the message we just inserted:
       axios.get(`${API_URL}/messages`)
         .then((response) => {
           const messageLog = response.data;

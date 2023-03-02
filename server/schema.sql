@@ -1,4 +1,4 @@
-CREATE DATABASE chat;
+CREATE DATABASE chat; /* IF NOT EXISTS? */
 
 USE chat;
 
@@ -26,7 +26,7 @@ CREATE TABLE roomUserJunction (
 CREATE TABLE messages (
   /* Describe your table here.*/
   id INT PRIMARY KEY,
-  txt VARCHAR(255) NOT NULL, /* CHECK LATER 255 characters?*/
+  text VARCHAR(255) NOT NULL, /* CHECK LATER 255 characters?*/
   roomId INT NOT NULL,
   userId INT NOT NULL, /* end of columns creation */
   FOREIGN KEY (roomId) REFERENCES rooms (id), /* assign foreign key*/
